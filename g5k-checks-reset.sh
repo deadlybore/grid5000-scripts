@@ -31,7 +31,7 @@ do
             CLUSTER=$OPTARG
             ;;
         n)
-            NODES=$(nodeset -e $OPTARG)
+            NODES=($(nodeset -e $OPTARG))
             ;;
         o)
             OUTPUT_DIR=$OPTARG
@@ -53,10 +53,10 @@ done
 
 mkdir -p $OUTPUT_DIR
 
-[[ ! -z $NODES ]] ||  NODES=$(nodes5k -s $SITE -c $CLUSTER)
-NODES_F=$(echo $NODES | nodeset -f)
+[[ ! -z $NODES ]] ||  NODES=($(nodes5k -s $SITE -c $CLUSTER))
+NODES_F=($(echo ${NODES[@]} | nodeset -f))
 
-CLUSH_CMD="clush -w $NODES_F"
+CLUSH_CMD="clush -w ${NODES_F[@]}"
 
 $CLUSH_CMD "g5k-checks -c <(echo -e "testlist: \n  - all\n") -m api -e os"
 $CLUSH_CMD --rcopy /tmp/*.yaml --dest $OUTPUT_DIR
@@ -67,8 +67,9 @@ do
     mv $name ${name#*.yaml.}.yaml
 done
 
-sed -ri "s/^(.*)$/  \1/" $OUTPUT_DIR/*
+sed -sri "s/^(.*)$/  \1/" *
 
-xargs -d' ' -a <(echo $NODES) -Inode sed -i -e "1 s/^.*$/---\nnode:/" node.yaml
+xargs -d' ' -a <(echo ${NODES[@]} | tr -d '\n') -Inode sed -i -e '1 s/^.*$/---\nnode:/' node.yaml
+exit
 
 cd -
