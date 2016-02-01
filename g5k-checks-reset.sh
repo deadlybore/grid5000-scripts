@@ -2,16 +2,23 @@
 
 set -u
 
+trap 'trap_error_handler ${LINENO} $?' ERR
+
 OUTPUT_DIR="/tmp/g5k-check-reset"
+NODES=
 
 help () {
 
 echo """Usage:
 -s SITE
 -c CLUSTER
--n NODE (not yet implmented
+-n NODES
 -o OUTPUT_DIR to put the yaml file, default : $OUTPUT_DIR"""
 
+}
+
+trap_error_handler () {
+    echo "$0: line $1 exit $2"
 }
 
 while getopts "s:c:n:o:h" opt;
@@ -24,7 +31,7 @@ do
             CLUSTER=$OPTARG
             ;;
         n)
-            NODE=$OPTARG
+            NODES=$(nodeset -e $OPTARG)
             ;;
         o)
             OUTPUT_DIR=$OPTARG
@@ -46,7 +53,7 @@ done
 
 mkdir -p $OUTPUT_DIR
 
-NODES=$(nodes5k -s $SITE -c $CLUSTER)
+[[ ! -z $NODES ]] ||  NODES=$(nodes5k -s $SITE -c $CLUSTER)
 NODES_F=$(echo $NODES | nodeset -f)
 
 CLUSH_CMD="clush -w $NODES_F"
