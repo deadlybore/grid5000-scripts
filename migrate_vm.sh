@@ -76,6 +76,27 @@ umount_lv_on_local_srv () {
     rmdir ${MOUNT_POINT}
 }
 
+shutdown_local_vm () {
+    echo "$NAME is shutting down"
+    xm shutdown $NAME
+}
+
+wait_for_shutdown () {
+    local IS_SHUT=0
+    while [[ ${IS_SHUT} -eq 0 ]];
+    do
+      sleep 0.5s
+      xm list | grep ${NAME}
+      IS_SHUT=${?}
+    done
+    echo "${NAME} is shut"
+}
+
+start_vm_on_remote () {
+    echo "${NAME} is starting on ${SRV_DEST}"
+    ${SSH_CMD} xl create ${XEN_CFG_FILE}
+}
+
 NAME=$(get_x name)
 KERNEL=$(get_x kernel)
 RAMDISK=$(get_x ramdisk)
@@ -88,14 +109,26 @@ LV_SIZE=$(get_lv_size ${DISK})
 REMOTE_DISK="/dev/${VG}/${NAME}-disk"
 MOUNT_POINT="/mnt/${NAME}"
 
+echo -e "Do you want to move the VM ? [y/N] :\c"
+read -n1 -t5 MOVE
+
+[[ ${MOVE} = [yY] ]] && MOVE=0 || MOVE=1
+
 create_lv_on_remote_srv
 
 mount_lv_on_remote_srv
 mount_lv_on_local_srv
+
+if [[ ${MOVE} -eq 0 ]]; then
+    shutdown_local_vm
+    wait_for_shutdown
+fi
 
 sync_data
 
 umount_lv_on_remote_srv
 umount_lv_on_local_srv
 
-
+if [[ ${MOVE} -eq 0 ]]; then
+    start_vm_on_remote
+fi
