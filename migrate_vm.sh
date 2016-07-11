@@ -22,11 +22,11 @@ SSH_CMD="ssh ${SRV_DEST}"
 
 # Return value of a "key = 'value'" line
 get_x () {
-    grep ${1} ${XEN_CFG_FILE} | sed -r "s/[a-z]* *= *'(.*)'/\1/"
+    grep -E "^${1}" ${XEN_CFG_FILE} | sed -r "s/[a-z]* *= *'(.*)'/\1/"
 }
 
 get_lv_size () {
-    lvdisplay ${1} | awk '/Size/ { print $3 }'
+    lvdisplay ${1} | awk '/Size/ { print $3$4 }'
 }
 
 get_disk () {
