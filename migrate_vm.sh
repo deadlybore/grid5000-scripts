@@ -63,7 +63,7 @@ sync_data () {
     rsync -avuh ${XEN_CFG_FILE} ${SRV_DEST}:/etc/xen/
     rsync -avuh ${KERNEL}       ${SRV_DEST}:/boot/
     rsync -avuh ${RAMDISK}      ${SRV_DEST}:/boot/
-    rsync -avuh ${MOUNT_POINT}/ ${SRV_DEST}:${MOUNT_POINT}
+    rsync -avuh --numeric-ids ${MOUNT_POINT}/ ${SRV_DEST}:${MOUNT_POINT}
 }
 
 umount_lv_on_remote_srv () {
