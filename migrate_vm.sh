@@ -77,19 +77,8 @@ umount_lv_on_local_srv () {
 }
 
 shutdown_local_vm () {
-    echo "$NAME is shutting down"
-    xm shutdown $NAME
-}
-
-wait_for_shutdown () {
-    local IS_SHUT=0
-    while [[ ${IS_SHUT} -eq 0 ]];
-    do
-      sleep 0.5s
-      xm list | grep ${NAME}
-      IS_SHUT=${?}
-    done
-    echo "${NAME} is shut"
+    echo "${NAME} is shutting down"
+    xm shutdown -w ${NAME}
 }
 
 start_vm_on_remote () {
@@ -121,7 +110,6 @@ mount_lv_on_local_srv
 
 if [[ ${MOVE} -eq 0 ]]; then
     shutdown_local_vm
-    wait_for_shutdown
 fi
 
 sync_data
