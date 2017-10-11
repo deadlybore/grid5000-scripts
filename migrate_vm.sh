@@ -20,6 +20,9 @@ VG='rootvg'
 
 SSH_CMD="ssh ${SRV_DEST}"
 
+XEN_LOCAL_CMD=$(xm li && echo xm || echo xl)
+XEN_REMOTE_CMD=$(${SSH_CMD} xm li && echo xm || echo xl)
+
 # Return value of a "key = 'value'" line
 get_x () {
     grep -E "^${1}" ${XEN_CFG_FILE} | sed -r "s/[a-z]* *= *'(.*)'/\1/"
@@ -78,12 +81,12 @@ umount_lv_on_local_srv () {
 
 shutdown_local_vm () {
     echo "${NAME} is shutting down"
-    xm shutdown -w ${NAME}
+    ${XEN_LOCAL_CMD} shutdown -w ${NAME}
 }
 
 start_vm_on_remote () {
     echo "${NAME} is starting on ${SRV_DEST}"
-    ${SSH_CMD} xl create ${XEN_CFG_FILE}
+    ${SSH_CMD} ${XEN_REMOTE_CMD} create ${XEN_CFG_FILE}
 }
 
 NAME=$(get_x name)
